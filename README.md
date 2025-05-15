@@ -1,5 +1,7 @@
 # team-9-energentic-hackathon
-Beckn Challenge
+ Household-level agent that empowers users to participate in demand flexibility while safeguarding comfort, convenience, and trust.
+
+
 1. On status webhook is present in beckn, it will call the our backend
 2. Once we get the webhook event and if its a peak hour, we store it in the DB.
 3. Frontend keeps polling for any peak hour thing when charging is on going.
