@@ -9,104 +9,115 @@
     - Then in UI show inidcator, give the three buttons in the UI (C/ P/ S)
     - When user selects the C (continue charging at same speed) or P (pause charging in peak hours) or S(reduce the charging speed during peak hours) agent take that particular action in backend.
 
-Normal rates : 10 AM - 6 PM: 8rs
-Peak rates: 6 PM - 10 PM: 9rs
-Off peak rates: 10 PM - 6 AM: 6.5rs
-Consider session starts at 5PM for 30 units at 7.5kWh
-Ideally: 240
-Notification at 5:50 PM indicating its peak hour.
+# Smart Residential EV Charging: Peak Hour Optimization Agent
 
-He has options:
+This module describes the logic for an AI-powered **Residential Energy Agent** that helps users save on EV charging costs, reduce grid overload during peak hours, and shift loads based on utility signals.
 
-Continue:
-Will result 22.5rs extra
-Total hours: 3h
-End: 9PM
-Pause and continue in off peak:
-Will result in saving 33.75rs
-Total hours: 3h
-End: 1AM
-Slow and continue in peak hour:
-Will result in saving 13.5rs
-Total hours: 5h 20m
-End: 11:20PM
-Case C
-Time	Speed (kWh)	Rate (Rs/kWh)	Price (Rs)	Units Charged (kWh)
-5–6	7.5	8.0	60.00	7.5
-6–7	7.5	9.0	67.50	7.5
-7–8	7.5	9.0	67.50	7.5
-8–9	7.5	9.0	67.50	7.5
-Total			262.5	30.0
-Case P
-Time	Speed (kWh)	Rate (Rs/kWh)	Price (Rs)	Units Charged (kWh)
-5–6	7.5	8.0	60.00	7.5
-10–11	7.5	6.5	48.75	7.5
-11–12	7.5	6.5	48.75	7.5
-12–1	7.5	6.5	48.75	7.5
-Total			206.25	30.0
-Case S
-Time	Speed (kWh)	Rate (Rs/kWh)	Price (Rs)	Units Charged (kWh)
-5–6	7.5	8.0	60.00	7.5
-6–7	3.0	9.0	27.00	3.0
-7–8	3.0	9.0	27.00	3.0
-8–9	3.0	9.0	27.00	3.0
-9–10	3.0	9.0	27.00	3.0
-10–11	7.5	6.5	48.75	7.5
-11–11:20	7.5	6.5	9.75	1.5
-Total			226.50	30.0
-Charge the vehicle in peak hours
-Continue: if electicity can be used
-Pause: just wait until peak hours is over
-Slow: take less input or slow down the consumption
-Executions
-Get utility flexibility signals
-Start (user triggers first time) and CPS (above ones)
-Users Perspective
-Home screen
-How much money saved
-How much kw chargerd in off-peak hours
-Carbon emission saved overall (inclusion of peak hours)
-Graph to represent kw consumed during the day
-Enable savings agent toggle button (Show Approx peak hours)
-Default: C/P/S
-Each session if we get the event: We'll send notification, override default behaviour
+---
 
-He clicks start (BAP)
-The start goes to beckn (charger hardcode)
-Starts the charger
-Backend
-On status webhook is present in beckn, it will call the our backend
-Once we get the webhook event and if its a peak hour, we store it in the DB.
-Frontend keeps polling for any peak hour thing when charging is on going.
-If there is peak hour indicated in backend
-Then in UI show inidcator, give the three buttons in the UI (C/ P/ S)
-When user selects the C or P or S we take that particular action in backend.
-Statement
+##  Time-of-Day Tariff Structure
+
+| Time Range         | Tariff (₹/kWh) |
+|--------------------|----------------|
+| 10:00 AM – 6:00 PM | ₹8.0           |
+| 6:00 PM – 10:00 PM | ₹9.0 *(Peak)*  |
+| 10:00 PM – 6:00 AM | ₹6.5 *(Off-peak)* |
+
+---
+
+##  Charging Session Example
+
+- **Start Time**: 5:00 PM  
+- **Session Size**: 30 units (7.5 kWh x 4)  
+- **Ideal Cost**: ₹240  
+
+###  Notification at 5:50 PM  
+> "Entering peak hour soon. Choose your charging strategy: Continue / Pause / Slow."
+
+---
+
+##  User Charging Options
+
+### Case C: **Continue During Peak**
+- **Total Time**: 3 hours (Ends at 9:00 PM)
+- **Total Cost**: ₹262.50
+- **Extra Cost Over Ideal**: ₹22.50
+
+| Time     | Rate (₹/kWh) | Energy (kWh) | Cost (₹)  |
+|----------|--------------|---------------|-----------|
+| 5–6 PM   | ₹8.0         | 7.5           | ₹60.00    |
+| 6–9 PM   | ₹9.0         | 22.5          | ₹202.50   |
+| **Total**|              | 30.0          | ₹262.50   |
+
+---
+
+### Case P: **Pause During Peak, Resume at Off-Peak**
+- **Total Time**: 3 hours (Ends at 1:00 AM)
+- **Total Cost**: ₹206.25
+- **Savings**: ₹33.75
+
+| Time      | Rate (₹/kWh) | Energy (kWh) | Cost (₹)  |
+|-----------|--------------|--------------|-----------|
+| 5–6 PM    | ₹8.0         | 7.5          | ₹60.00    |
+| 10–1 AM   | ₹6.5         | 22.5         | ₹146.25   |
+| **Total** |              | 30.0         | ₹206.25   |
+
+---
+
+### Case S: **Slow Down During Peak**
+- **Total Time**: 5 hr 20 min (Ends at 11:20 PM)
+- **Total Cost**: ₹226.50
+- **Savings**: ₹13.50
+
+| Time         | Rate (₹/kWh) | Energy (kWh) | Cost (₹)  |
+|--------------|--------------|--------------|-----------|
+| 5–6 PM       | ₹8.0         | 7.5          | ₹60.00    |
+| 6–10 PM      | ₹9.0         | 12.0         | ₹108.00   |
+| 10–11:20 PM  | ₹6.5         | 10.5         | ₹58.50    |
+| **Total**    |              | 30.0         | ₹226.50   |
+
+---
+
+##  System Execution Flow
+
+### User Journey
+1. **User taps Start Charging** (Button on app).
+2. **Start command** sent to backend via Beckn protocol.
+3. **Charger starts** via hardcoded backend trigger.
+4. **Backend receives charging `status` via webhook.**
+5. If peak hour begins during the session:
+   - Backend logs event
+   - Frontend polls and fetches the peak status
+   - User is notified with options: **Continue / Pause / Slow**
+6. User selects an action → Backend executes that strategy.
+
+---
+
+## AI + Grid Integration Example
+
 Residential Energy Agent
-Hi! I’ve received a flexibility signal from your utility’s Utility Grid Agent agent.
-They’ve triggered an event for Feeder M12 from 6:00–6:30 PM to prevent a local overload.
+Hi! I’ve received a flexibility signal from your utility’s Utility Grid Agent.
+They’ve triggered an event for Feeder B9 from 6:30–8:00 PM to prevent a local transformer overload.
 
-[Thinking: Local temperature is 28°C. Battery SoC is 82%. EV charging active. User is opted in with “manual confirmation” setting.]
+[Context: Local temperature is 31°C. Battery SoC is 40%. EV charging active. User opted in with “manual confirmation” setting.]
 
-I’ve prepared a response plan. Want to review it?
+Analyzing options based on:
+- Trip scheduled next morning 7:30 AM
+- Vehicle needs minimum 20 kWh by 6 AM
+- Comfort threshold: session can extend until midnight
 
-Homeowner
-Yes, show me the plan.
+Here’s the proposed response plan:
 
-Residential Energy Agent
-[Thinking: Balance user comfort, cost savings, and grid contribution. No action exceeds user-defined thresholds.]
+• Switch to slow charging (3 kW) during peak hours to avoid overload
+• Resume full-speed charging after 10 PM (off-peak)
+• Expected completion by 12:00 AM
+• Total cost: ₹225.75 (vs ₹258 baseline)
+• Estimated savings: ₹32.25
+• CO₂ savings: 1.2 kg by avoiding peak grid draw
 
-Here’s what I propose:
-
-Delay EV charging by 45 minutes (impact negligible for next trip)
-Draw from battery instead of grid power from 6:00–6:30 PM
-Estimated impact: 2.1 kWh shifted
-Projected reward: $8.10
 Approve this plan?
 
-Homeowner
-Yes, approve.
+Homeowner: ✅ Yes, approve.
 
-Residential Energy Agent
-Confirmed. Schedule activated. Devices will adjust automatically.
-[Thinking: Will monitor AC compressor runtime and grid frequency. Rebalance if event intensity changes.]
+Residential Energy Agent  
+Confirmed. Charging will continue at reduced rate during peak window. Full-speed charging will resume at 10:00 PM.
