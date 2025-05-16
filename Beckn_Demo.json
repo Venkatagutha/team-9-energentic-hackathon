@@ -1,0 +1,164 @@
+{
+  "name": "Beckn Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hackathon/chat",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e41395c1-408e-471b-811b-7a36c0c93a1a",
+      "name": "Webhook",
+      "webhookId": "2f42ad60-08f0-4733-aac7-f3b79f0b8ee8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Your task is to analyze the user's input and classify their intent into one of the following actions:\n\n* `\"continue\"` (if the user wants to proceed with charging normally)\n* `\"stop\"` (if the user wants to pause or halt charging)\n* `\"slow-down\"` (if the user wants to reduce charging speed)\n* `\"general_response\"` (if the message doesn't match the above three — ask the user to clarify their intent politely)\n\nBased on the identified choice, respond only with a **raw JSON object** in the following format:\n\n{\n\"choice\": \"\\<continue | stop | slow-down | general\\_response>\",\n\"message\": \"summary or polite clarification message based on the user's selected option\"\n}\n\nUse the following messages for each choice:\n\n* **continue**:\n  \"You chose to continue charging. This will cost ₹22.50 extra. Duration: 3 hours. Estimated completion: 9:00 PM.\"\n\n* **stop**:\n  \"You chose to pause and resume during off-peak hours. You’ll save ₹33.75. Duration: 3 hours. Estimated completion: 1:00 AM.\"\n\n* **slow-down**:\n  \"You chose to slow down charging during peak hours. You’ll save ₹13.50. Duration: 5 hours 20 minutes. Estimated completion: 11:20 PM.\"\n\n* **general\\_response**:\n  \"Could you please clarify your preference for charging? You can say continue, stop, or slow down.\"\n\nReturn only the raw JSON object with no markdown, quotes, or extra formatting.\n\nUser message:\n \n{{ $json.body }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        0
+      ],
+      "id": "e5439092-a343-4646-aebe-5ae7af928dd1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        200
+      ],
+      "id": "00efbb4f-e2f0-49a2-b9b2-ce9307c08ba0",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "yeAO5v1mRkbkKXjY",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0832cd35-6ab3-46ef-82c7-885c526aa14a",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        580,
+        0
+      ],
+      "id": "2017c048-30d1-4b4a-ba19-8ec016170623",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "upgrade",
+            "host": "n8n.lioncharge.tech",
+            "x-real-ip": "49.37.176.151",
+            "x-forwarded-for": "49.37.176.151",
+            "x-forwarded-proto": "https",
+            "content-length": "29",
+            "content-type": "application/json",
+            "user-agent": "PostmanRuntime/7.43.4",
+            "accept": "*/*",
+            "postman-token": "ce8bb2c9-21a6-470c-bb69-b22fe30ed0e4",
+            "accept-encoding": "gzip, deflate, br"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "message": "continue"
+          },
+          "webhookUrl": "http://localhost:5678/webhook/hackathon/chat",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "46673b4d-b1b1-4be3-9c6f-5f25464f16d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7eb405758e0cd6c131677a0d74d314646778bf8a175fab76629e789b2ee83d00"
+  },
+  "id": "cNZQj8YyEg2TDBt9",
+  "tags": []
+}
